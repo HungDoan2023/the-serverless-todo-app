@@ -53,7 +53,6 @@ custom:
       schema: ${file(models/update-todo-model.json)}
 
 functions:
-
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -152,7 +151,7 @@ functions:
     - http:
         method: delete
         path: todos/{todoId}
-        corse: true
+        cors: true
     iamRoleStatements:
     - Effect: Allow
       Action:
@@ -221,7 +220,7 @@ resources:
         - AttributeName: todoId
           KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        LocalSecondaryIndexes:
+        GlobalSecondaryIndexes:
         - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
           KeySchema:
           - AttributeName: userId
