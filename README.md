@@ -18,6 +18,14 @@ Use command line to jump into the `backend` directory and run
 #### Clone the repository
 * [https://github.com/HungDoan2023/the-serverless-todo-app](https://github.com/HungDoan2023/the-serverless-todo-app)
 
+#### Create an Serverless application and Fetch a Certificate with Auth0
+1. Create a Serverless application
+* ![Create Serverless application](images/create-new-app-serverless.PNG)
+
+2. Create account on Auth0 for fetching certificate
+* ![Fetch certificate](images/create-authorize-account-with-auth0.PNG)
+
+
 #### Backend
 * `npm install -g --force`
 * `npm audix fix --force`
