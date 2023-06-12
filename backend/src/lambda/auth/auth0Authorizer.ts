@@ -56,7 +56,6 @@ export const handler = async (
 };
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
-
   const token = getToken(authHeader);
   const jwt: Jwt = decode(token, { complete: true }) as Jwt;
 
@@ -71,6 +70,7 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
       "Access-Control-Allow-Credentials": true,
     },
   });
+
   let key = await getSigningKey(res.data.keys, jwt.header.kid);
 
   return verify(token, key.publicKey, { algorithms: ["RS256"] }) as JwtPayload;
@@ -83,31 +83,40 @@ function getToken(authHeader: string): string {
     throw new Error("Invalid authentication header");
 
   const split = authHeader.split(" ");
-  const token = split[1];
+  const token = split[1];  
   console.log(`getToken ${token}`)
+
   return token;
 }
 
 const getSigningKey = async (keys, kid) => {
   const signingKeys = keys
     .filter(
-      (key) =>
-        key.alg === "RS256" &&
-        key.use === "sig" && // JWK property `use` determines the JWK is for signing
-        key.kty === "RSA" && // We are only supporting RSA
-        key.kid && // The `kid` must be present to be useful for later
-        key.x5c &&
-        key.x5c.length // Has useful public keys (we aren't using n or e)
+      key =>        
+        key.use === "sig" && // JWK property `use` determines the JWK is for signing        
+        key.kty === "RSA" && // We are only supporting RSA        
+        key.kid && // The `kid` must be present to be useful for later        
+        ((key.x5c && key.x5c.length) || (key.n && key.e)) // Has useful public keys (we aren't using n or e)
     )
-    .map((key) => {
-      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) };
+    .map(key => {
+      return { 
+        kid: key.kid, 
+        nbf: key.nbf, 
+        publicKey: certToPEM(key.x5c[0])
+      };
     });
+
+  if (!signingKeys) {
+    logger.error("The JWKS endpoint did not contain any signing keys");
+    throw new Error('The JWKS endpoint did not contain any signing keys');
+  }
+
   const signingKey = signingKeys.find((key) => key.kid === kid);
-  
   if (!signingKey) {
     logger.error("No signing keys found");
     throw new Error("Invalid signing keys");
   }
+
   logger.info("Signing keys created successfully ", signingKey);
   console.log(`getSigningKey ${signingKey}`)
 
